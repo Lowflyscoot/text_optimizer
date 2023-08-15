@@ -54,10 +54,36 @@
     <property name="geometry">
      <rect>
       <x>590</x>
-      <y>60</y>
+      <y>110</y>
       <width>211</width>
-      <height>641</height>
+      <height>591</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="editButton">
+    <property name="geometry">
+     <rect>
+      <x>590</x>
+      <y>60</y>
+      <width>101</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>EDIT</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="resetButton_2">
+    <property name="geometry">
+     <rect>
+      <x>700</x>
+      <y>60</y>
+      <width>101</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>RESET</string>
     </property>
    </widget>
   </widget>

@@ -10,44 +10,76 @@ class Ui(QtWidgets.QMainWindow):
 
         self.keywords = {}
         self.words = {}
+        self.saving_buffer = ""
         self.calculate_processing = False
 
         self.userTextEdit.textChanged.connect(self.calculate_keywords)
         self.startButton.clicked.connect(self.start_calculating)
         self.resetButton.clicked.connect(self.reset_calculating)
+        self.editButton.clicked.connect(self.edit_mode)
 
+    def save_keywords(self):
+        for key, freqency in self.keywords.items():
+
+
+
+    def edit_mode(self):
+        if self.saving_buffer == "":
+            saving_keywords = self.keywords
+            self.saving_buffer = self.userTextEdit.toPlainText()
+            new_text_buffer = ""
+            for key, frequency in saving_keywords.items():
+                new_text_buffer += key + " " + str(frequency) + "\n"
+            self.reset_calculating()
+            self.userTextEdit.setText(new_text_buffer)
+        else:
+            self.start_calculating()
+            self.userTextEdit.setText(self.saving_buffer)
+            self.saving_buffer = ""
+
+    # обнуление ввода и ключевиков, сброс в исходное состояние
     def reset_calculating(self):
         self.userTextEdit.setText("")
         self.systemTextEdit.setText("")
         self.calculate_processing = False
         self.keywords = {}
 
+    # пересчёт ключевых слов при каждом изменении ввода
     def calculate_keywords(self):
         if self.calculate_processing:
             # берём текст из левого поля
             seo_text = self.userTextEdit.toPlainText().lower()
+            # если встречается стоп - дальше не учитываем
+            if "stop" in seo_text:
+                seo_text = seo_text[:seo_text.find("stop")]
             responce_text = "required keys:\n"
             # выводим ключевики, вычитая уже введённые слова в счётчик
             for keyword, frequency in self.keywords.items():
                 responce_text += f"{keyword} {int(frequency) - seo_text.count(keyword)}\n"
 
-            responce_text += "\nfacted keys:\n"
-            self.calculate_words_frequency(seo_text)
-            counter = 0
-            for word, freq in self.words.items():
-                responce_text += f"{word}: {freq}\n"
-                counter += 1
-                if counter > 10:
-                    break
+            # пока частотность определяется строго - оно бесполезно, надо доделать
+            # responce_text += "\nfacted keys:\n"
+            # self.calculate_words_frequency(seo_text)
 
+            # выводим первые 10 самых частых слов
+            # counter = 0
+            # for word, freq in self.words.items():
+            #     responce_text += f"{word}: {freq}\n"
+            #     counter += 1
+            #     if counter > 10:
+            #         break
+
+            # дописываем длину текста и выводим
             responce_text += "\n" + self.calculate_text_parameters(seo_text)
             self.systemTextEdit.setText(responce_text)
 
+    # определение длины текста в символах и словах
     def calculate_text_parameters(self, input):
         number_of_words = len(input.split())
         number_of_chars = len(input.replace(" ", ""))
         return f"words: {number_of_words}, char without spaces: {number_of_chars}"
 
+    # определяем частотность всех слов в тексте
     def calculate_words_frequency(self, input):
         text_buf = input.replace(",", "")
         text_buf = text_buf.replace(".", "")
@@ -68,6 +100,7 @@ class Ui(QtWidgets.QMainWindow):
 
         self.words = tmp_words
 
+    # запуск расчёта, ввод разбирается на слова и программа переходит в рабочий режим по нажатию на кнопку
     def start_calculating(self):
         if not self.calculate_processing:
             self.calculate_processing = True
@@ -75,12 +108,25 @@ class Ui(QtWidgets.QMainWindow):
             self.input_parsing(input)
             self.userTextEdit.setText("")
 
+    # парсинг вошедшей строки
     def input_parsing(self, input):
         input = input.lower()
-        for pare in input.split("\n"):
-            keyword, frequency = pare.split()
-            keyword = keyword.replace("_", " ")
-            self.keywords.update({keyword: frequency})
+        for string in input.split("\n"):
+            # строки с менее чем 2 элементами игнорируем
+            if len(string.split(" ")) < 2:
+                continue
+            frequency = 0
+            keyword = ""
+            # Перебираем ввод с конца в поисках первого числа
+            for word in reversed(string.split()):
+                if frequency == 0:
+                    if word.isdigit():
+                        frequency = int(word)
+                        break
+            # Если нашли в строке ненулевое число нужного количества вхождений - формируем ключевик
+            if frequency > 0:
+                keyword = string[:keyword.find(str(frequency)) - 1].rstrip()
+                self.keywords.update({keyword: frequency})
 
 
 if __name__ == '__main__':
