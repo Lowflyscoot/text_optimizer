@@ -1,5 +1,6 @@
 import sys
 from PyQt5 import QtWidgets, uic
+import json
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -12,19 +13,36 @@ class Ui(QtWidgets.QMainWindow):
         self.words = {}
         self.saving_buffer = ""
         self.calculate_processing = False
+        self.edit_mode_enable = False
 
         self.userTextEdit.textChanged.connect(self.calculate_keywords)
         self.startButton.clicked.connect(self.start_calculating)
         self.resetButton.clicked.connect(self.reset_calculating)
         self.editButton.clicked.connect(self.edit_mode)
+        self.loadButton.clicked.connect(self.load_keywords)
+        self.saveButton.clicked.connect(self.save_keywords)
 
     def save_keywords(self):
-        for key, freqency in self.keywords.items():
+        with open("saved_keys.json", "w") as file:
+            json.dump(self.keywords, file)
+            # saving_keys = ""
+            # for key, freqency in self.keywords.items():
+            #     saving_keys += f"{key} {str(freqency)}\n"
+            # file.write(saving_keys)
 
-
+    def load_keywords(self):
+        with open("saved_keys.json", "r") as file:
+            self.keywords = json.load(file)
+            # loaded_keys = file.read()
+            # self.keywords = {}
+            # self.input_parsing(loaded_keys)
+            if not self.calculate_processing:
+                self.calculate_processing = True
+            self.calculate_keywords()
 
     def edit_mode(self):
-        if self.saving_buffer == "":
+        if not self.edit_mode_enable:
+            self.edit_mode_enable = True
             saving_keywords = self.keywords
             self.saving_buffer = self.userTextEdit.toPlainText()
             new_text_buffer = ""
@@ -33,6 +51,7 @@ class Ui(QtWidgets.QMainWindow):
             self.reset_calculating()
             self.userTextEdit.setText(new_text_buffer)
         else:
+            self.edit_mode_enable = False
             self.start_calculating()
             self.userTextEdit.setText(self.saving_buffer)
             self.saving_buffer = ""
